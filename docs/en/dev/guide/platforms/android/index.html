@@ -216,6 +216,21 @@
 
     <li>
         
+            <a class="" href="/docs/en/dev/guide/overview/project-structure.html">
+                Project Structure
+            </a>
+            
+        
+
+        
+        
+
+        
+    </li>
+    
+
+    <li>
+        
             <a class="" href="/docs/en/dev/reference/cordova-cli/index.html">
                 CLI Commands
             </a>
@@ -1043,6 +1058,15 @@
 
 
 
+
+
+
+
+<li>
+    <a class="" href="/docs/en/dev/guide/overview/project-structure.html">
+        Project Structure
+    </a>
+</li>
 
 
 
@@ -2342,6 +2366,22 @@
     </thead>
     <tbody>
         <tr>
+            <td>13.0.x</td>
+            <td>24 (7.0) - 34 (14.0)</td>
+            <td>
+                <ul>
+                    <li>Build Tools: ^34.0.0</li>
+                    <li>Kotlin: 1.9.24</li>
+                    <li>Gradle: 8.7</li>
+                    <li>Android Gradle Plugin: 8.3.0</li>
+                    <li>AndroidX Compat Library: 1.6.1</li>
+                    <li>AndroidX WebKit Library: 1.6.0</li>
+                    <li>AndroidX Core SplashScreen: 1.0.0</li>
+                    <li>Google Services Gradle Plugin: 4.3.15</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
             <td>12.0.x</td>
             <td>24 (7.0) - 33 (13.0)</td>
             <td>
@@ -2462,9 +2502,11 @@
 
 <h3>Java Development Kit (JDK)</h3>
 
-<p>If you are using <code>cordova-android</code> 10.0.0 or greater, install the <a href="https://www.oracle.com/java/technologies/javase-jdk11-downloads.html">Java Development Kit (JDK) 11</a>.</p>
+<p>If using <code>cordova-android</code> 13 or later, install the <a href="https://www.oracle.com/java/technologies/downloads/#java17">Java Development Kit (JDK) 17</a>.</p>
 
-<p>If you are using any version below <code>cordova-android</code> 10.0.0, install the <a href="https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html">Java Development Kit (JDK) 8</a>.</p>
+<p>If using <code>cordova-android</code> 10 through 12, install the <a href="https://www.oracle.com/java/technologies/downloads/#java11">Java Development Kit (JDK) 11</a></p>
+
+<p>If using <code>cordova-android</code> 9 or earlier, install the <a href="https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html">Java Development Kit (JDK) 8</a>.</p>
 
 <p>The <code>JAVA_HOME</code> environment variable must be set according to your JDK installation path. See the <a href="#setting-environment-variables">Setting Environment Variables</a> section on how to set up environment variables. Alternatively as of <code>cordova-android</code> 10.0.0 or greater, <code>CORDOVA_JAVA_HOME</code> can be set in place of <code>JAVA_HOME</code>, allowing a JDK install to be used specifically for Cordova development.</p>
 
@@ -2582,26 +2624,43 @@
 
 <p><em><strong>Note:</strong> The directories above are generally located in the Android SDK ROOT.</em></p>
 
-<h4>macOS and Linux</h4>
+<h4>Linux and macOS</h4>
 
-<p>On a Mac or Linux, with a text editor, create or modify the <code>~/.bash_profile</code> file.</p>
+<p>On Linux or macOS versions prior to Catalina, use any text editor to create or modify the <code>~/.bash_profile</code> file.
+<br />On macOS Catalina and newer, create or modify the <code>~/.zprofile</code> file, as the default shell has changed.</p>
 
-<p>To set an environment variable, add a line that uses <code>export</code> like so (substitute the path with your local installation):</p>
+<p>Add the following line to your shell&#39;s profile to set up the <code>ANDROID_HOME</code> environment variable.</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">ANDROID_HOME</span><span class="o">=</span>/Development/android-sdk/
+<p><strong>Linux:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">ANDROID_HOME</span><span class="o">=</span>~/Android/Sdk
 </code></pre></div></div>
 
-<p>To update your <code>PATH</code>, add a line resembling the following (substitute the paths with your local Android SDK installation&#39;s location):</p>
+<p><strong>macOS:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">ANDROID_HOME</span><span class="o">=</span>~/Library/Android/sdk
+</code></pre></div></div>
+
+<p>The above examples point to the standard paths where the Android SDK is typically stored. Depending on your environment configuration, the path may differ. Be sure to confirm that the path exist or adjust them to match your local installation.</p>
+
+<p>After setting the <code>ANDROID_HOME</code> environment variable, update the <code>PATH</code> variable to include directories containing various Android-related binaries.</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:<span class="nv">$ANDROID_HOME</span>/platform-tools/
 <span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:<span class="nv">$ANDROID_HOME</span>/cmdline-tools/latest/bin/
-<span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:<span class="nv">$ANDROID_HOME</span>/build-tools
+<span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:<span class="nv">$ANDROID_HOME</span>/build-tools/
 <span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:<span class="nv">$ANDROID_HOME</span>/emulator/
 </code></pre></div></div>
 
 <p>Reload your terminal to see this change reflected or run the following command:</p>
 
+<p><strong>Linux and macOS older then Catalina:</strong></p>
+
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">source</span> ~/.bash_profile
+</code></pre></div></div>
+
+<p><strong>macOS Catalina and newer:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">source</span> ~/.zprofile
 </code></pre></div></div>
 
 <h4>Windows</h4>

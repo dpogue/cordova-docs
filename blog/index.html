@@ -129,6 +129,789 @@
             
             <li>
                 <header>
+                    <div class="adorner" blogTime="Sat, 02 Nov 2024 00:00:00 +0000"></div>
+                    <h2 class="title">
+                        <a href="/announcements/2024/11/02/camera-plugin-camera-8.0.0.html">Camera Plugin 8.0.0 Released!</a>
+                    </h2>
+                    <div class="details">
+                        <span class="date">02 Nov 2024</span>
+                        - by
+                        <span class="author">
+                            
+                                <a href="https://breautek.com">Norman Breau</a>
+                            
+                        </span>
+                        <a class="comment" href="/announcements/2024/11/02/camera-plugin-camera-8.0.0.html#disqus_thread"></a>
+                    </div>
+                </header>
+                <section class="post-excerpt">
+                    <p><p>We are happy to announce that we have just released a major update for <code>cordova-plugin-camera</code>!</p>
+
+<ul>
+  <li><a href="https://www.npmjs.com/package/cordova-plugin-camera">cordova-plugin-camera@8.0.0</a></li>
+</ul>
+
+<p><strong>To upgrade:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cordova plugin remove cordova-plugin-camera
+cordova plugin add cordova-plugin-camera@8.0.0
+</code></pre></div></div>
+
+<h2>Release Highlights</h2>
+
+<p>This is a major update as it includes some breaking public API mechanisms, for
+the better!</p>
+
+<p>The breaking changes includes:</p>
+<ul>
+  <li><a href="#getpicture">getPicture</a></li>
+  <li><a href="#uri-persistence">URI Persistence</a></li>
+  <li><a href="#optional-write_external_storage-permission">Optional WRITE_EXTERNAL_STORAGE</a></li>
+</ul>
+
+<p>Additionally the <code>allowEdit</code> feature is now deprecated. <a href="#deprecation-allowedit">See more details</a>.</p>
+
+<h3>getPicture</h3>
+
+<p>The Camera plugin previously was very inconsistent with the return paths when
+using <code>getPicture</code> API. Sometimes it was <code>file://</code> uri, sometimes it was a raw
+file path. Applications would have to check and usually prefix the path
+themselves to make any use of them. So we&#39;ve streamlined the returned data as
+URIs.</p>
+
+<p>All platforms consistently return a <code>&lt;scheme&gt;:...</code> now.</p>
+
+<p>For all platforms, when using the <code>DATA_URL</code> option, the returned base64 encoded
+image used to return just the base64 encoded part. As of v8.0.0, the returned
+string now includes the <code>data:</code> uri header, including the MIME type that the
+base64 data represents.</p>
+
+<p>For iOS, <code>file://</code> uris were always previously returned consistently therefore,
+no changes were made here.</p>
+
+<p>For Android, the API behaved consistently depending on the underlying source of
+the content. Most of the time a raw file path was returned. It will now always
+return a URI of some sort, though unlike iOS, it is unsafe to assume it will be
+a <code>file://</code> uri.</p>
+
+<p>If you were testing and prefixing your file paths, you are no longer required to.
+All URIs returned when using <code>FILE_URI</code> option is resolvable by 
+cordova-plugin-file@8.1.2` and later.</p>
+
+<p>For examples on how to use the results, see the
+<a href="https://github.com/apache/cordova-plugin-camera?tab=readme-ov-file#take-a-picture-and-get-a-fileentry-object-">Camera Plugin Documentation</a></p>
+
+<h3>URI Persistence</h3>
+
+<p>For all platforms using <code>FILE_URI</code> option, the returned URI is <strong>temporarily access</strong> only.</p>
+
+<p>When sourcing content from the camera, the file is stored in the app&#39;s temporary
+directory, which the OS may clear out at any time when disk space is sparse.</p>
+
+<!-- For iOS, this might not be completely accurate, but for the sake of making
+the blog brief/simple, I'm omitting this fact -->
+<p>When sourcing content from the user&#39;s gallery, the returned URI has a
+temporarily read permission provided by the OS which expires typically once the
+application exits.</p>
+
+<p>This means that the URI returned by <code>getPicture</code> should not be stored. The
+application should decide what to do with it depending on their needs and
+requirements.</p>
+
+<p><strong>Example 1:</strong> The application is receiving an image for the user&#39;s profile
+picture and it will require persistent access to that content.</p>
+
+<p>Solution: The application should copy the content to the app&#39;s data directory
+and store and use the copied URI instead.</p>
+
+<p><strong>Example 2:</strong> The application is receiving an image to edit or make
+manipulations. It just needs one-time read to load into memory to put the data
+in an image editor.</p>
+
+<p>Solution: The application can safely use the temporarily URI to read and display
+the content and save the manipulated data later.</p>
+
+<h3>Optional WRITE_EXTERNAL_STORAGE Permission</h3>
+
+<p>For Android 7 - 12, this plugin used to always include the <code>WRITE_EXTERNAL_STORAGE</code>
+permission, and for implementation reasons it was required to operate.</p>
+
+<p>As of v8.0.0, the Camera plugin no longer automatically includes the permission
+declaration, as in most cases it is no longer required.</p>
+
+<p>If your application enables the <code>saveToPhotoAlbum</code> option, then you&#39;ll need to
+add the following to the <code>config.xml</code> file:</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;platform</span> <span class="na">name=</span><span class="s">"android"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;config-file</span> <span class="na">target=</span><span class="s">"AndroidManifest.xml"</span> <span class="na">parent=</span><span class="s">"/*"</span> <span class="na">xmlns:android=</span><span class="s">"http://schemas.android.com/apk/res/android"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;uses-permission</span> <span class="na">android:name=</span><span class="s">"android.permission.WRITE_EXTERNAL_STORAGE"</span> <span class="na">android:maxSdkVersion=</span><span class="s">"28"</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;/config-file&gt;</span>
+<span class="nt">&lt;/platform&gt;</span>
+</code></pre></div></div>
+
+<p>If your application does not use <code>saveToPhotoAlbum</code>, then your application does
+not require any permissions to operate both the camera, or picking from the
+user&#39;s gallery.</p>
+
+<p>Attempting to use <code>saveToPhotoAlbum</code> without declaring the <code>WRITE_EXTERNAL_STORAGE</code>
+will result in an error being returned on Android 7, Android 8, and Android 9 devices.</p>
+
+<h3>Deprecation: allowEdit</h3>
+
+<p>The <code>allowEdit</code> feature when capturing images from the camera, or selecting
+images from the gallery is now deprecated. Behaviour of this feature was
+inconsistent across platforms, and often times is unreliable as it was dependent
+on support of the underlying Camera application which was not standard.</p>
+
+<p>The feature still exists for the time being and should work as-is given it&#39;s
+documented caveats, but Apache Cordova will no longer provide support for issues
+arising from using the feature. The <code>allowEdit</code> option is scheduled to be
+completely removed at a later date with no direct replacement.</p>
+
+<p>Users using the <code>allowEdit</code> feature should move to a dedicated image
+manipulation library.</p>
+
+<h3>Known Issues</h3>
+
+<h4>iOS</h4>
+
+<p>The <code>FileEntry.toURL</code> method on iOS does not produce a DOM-usable uri while
+the application is configured to use schemes. A <a href="https://github.com/apache/cordova-plugin-file/pull/642">fix</a>
+for this will be available at an later date. In the meantime, the following can
+be used as a workaround:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// TODO: Remove when https://github.com/apache/cordova-plugin-file/pull/642 is released</span>
+<span class="kd">function</span> <span class="nx">toDomURL</span><span class="p">(</span><span class="nx">fileEntry</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">cordova</span><span class="p">.</span><span class="nx">platform</span> <span class="o">===</span> <span class="dl">"</span><span class="s2">ios</span><span class="dl">"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nb">window</span><span class="p">.</span><span class="nx">WkWebView</span><span class="p">.</span><span class="nx">convertFilePath</span><span class="p">(</span><span class="nx">fileEntry</span><span class="p">.</span><span class="nx">nativeUrl</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">fileEntry</span><span class="p">.</span><span class="nx">toURL</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>If your app is still hosted on the <code>file://</code> protocol on iOS, then the
+workaround is not necessary.</p>
+
+<h4>Android</h4>
+
+<p>Android will start returning <code>content://</code> instead of <code>file://</code> URIs when
+selecting images from the user&#39;s gallery in order to make use of the underlying
+MediaStore APIs. In order for these paths to be resolvable to a DOM-usable URL,
+the <code>AndroidInsecureFileModeEnabled</code> preference must be <code>"false"</code> (the default value).</p>
+
+<p>Please report any issues you find by following the
+<a href="https://github.com/apache/cordova#filing-a-bug">How to File a Bug</a> guide!</p>
+
+</p>
+                    <div><a href="/announcements/2024/11/02/camera-plugin-camera-8.0.0.html">More...</a></div>
+                </section>
+            </li>
+            
+            <li>
+                <header>
+                    <div class="adorner" blogTime="Fri, 01 Nov 2024 00:00:00 +0000"></div>
+                    <h2 class="title">
+                        <a href="/announcements/2024/11/01/cordova-lib-release-12.0.2.html">Cordova Lib 12.0.2 Released!</a>
+                    </h2>
+                    <div class="details">
+                        <span class="date">01 Nov 2024</span>
+                        - by
+                        <span class="author">
+                            
+                                Bryan Ellis
+                            
+                        </span>
+                        <a class="comment" href="/announcements/2024/11/01/cordova-lib-release-12.0.2.html#disqus_thread"></a>
+                    </div>
+                </header>
+                <section class="post-excerpt">
+                    <p><p>We are excited to announce the release of <code>cordova-lib</code>.</p>
+
+<ul>
+  <li><a href="https://www.npmjs.com/package/cordova-lib">cordova-lib@12.0.2</a></li>
+</ul>
+
+<p><strong>To upgrade:</strong></p>
+
+<p>If Cordova CLI is installed globally:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>npm uninstall <span class="nt">-g</span> cordova
+npm <span class="nb">install</span> <span class="nt">-g</span> cordova@latest
+</code></pre></div></div>
+
+<p>If Cordova CLI is installed locally within your project:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>npm uninstall cordova
+npm <span class="nb">install </span>cordova@latest
+</code></pre></div></div>
+
+<h2>Release Highlights</h2>
+
+<p>In this patch release, we have introduced several fixes. The most notable changes are:</p>
+
+<ul>
+  <li>Ability to install plugins on a prerelease version of a platform.</li>
+  <li>Consistent plugin installation order across all platforms.</li>
+  <li>Ability to uninstall plugins by specifying only the required platform variables.</li>
+</ul>
+
+<p>Please report any issues you find by following the <a href="https://github.com/apache/cordova#filing-a-bug">How to File a Bug</a> guide!</p>
+
+</p>
+                    <div><a href="/announcements/2024/11/01/cordova-lib-release-12.0.2.html">More...</a></div>
+                </section>
+            </li>
+            
+            <li>
+                <header>
+                    <div class="adorner" blogTime="Mon, 28 Oct 2024 00:00:00 +0000"></div>
+                    <h2 class="title">
+                        <a href="/announcements/2024/10/28/cordova-plugin-file-8.1.2.html">File Plugin 8.1.2 Released!</a>
+                    </h2>
+                    <div class="details">
+                        <span class="date">28 Oct 2024</span>
+                        - by
+                        <span class="author">
+                            
+                                <a href="https://breautek.com">Norman Breau</a>
+                            
+                        </span>
+                        <a class="comment" href="/announcements/2024/10/28/cordova-plugin-file-8.1.2.html#disqus_thread"></a>
+                    </div>
+                </header>
+                <section class="post-excerpt">
+                    <p><p>We are happy to announce that we have just released an update for <code>cordova-plugin-file</code>!</p>
+
+<ul>
+  <li><a href="https://www.npmjs.com/package/cordova-plugin-file">cordova-plugin-file@8.1.2</a></li>
+</ul>
+
+<p><strong>To upgrade:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cordova plugin remove cordova-plugin-file
+cordova plugin add cordova-plugin-file@8.1.2
+</code></pre></div></div>
+
+<h2>Release Highlights</h2>
+
+<p>This patch is a regression fix. See <a href="https://cordova.apache.org/announcements/2024/10/23/cordova-plugin-file-8.1.1.html">8.1.1 release blog</a> post for more details.</p>
+
+<p>In 8.1.1, the <code>FileEntry.toURL()</code> method broke when used on any <code>file://</code> that didn&#39;t lead to the app&#39;s internal assets on Android. This is now corrected.</p>
+
+<p>This bug didn&#39;t effect iOS devices.</p>
+
+<p>Please report any issues you find by following the <a href="https://github.com/apache/cordova#filing-a-bug">How to File a Bug</a> guide!</p>
+
+</p>
+                    <div><a href="/announcements/2024/10/28/cordova-plugin-file-8.1.2.html">More...</a></div>
+                </section>
+            </li>
+            
+            <li>
+                <header>
+                    <div class="adorner" blogTime="Wed, 23 Oct 2024 00:00:00 +0000"></div>
+                    <h2 class="title">
+                        <a href="/announcements/2024/10/23/cordova-plugin-file-8.1.1.html">File Plugin 8.1.1 Released!</a>
+                    </h2>
+                    <div class="details">
+                        <span class="date">23 Oct 2024</span>
+                        - by
+                        <span class="author">
+                            
+                                <a href="https://breautek.com">Norman Breau</a>
+                            
+                        </span>
+                        <a class="comment" href="/announcements/2024/10/23/cordova-plugin-file-8.1.1.html#disqus_thread"></a>
+                    </div>
+                </header>
+                <section class="post-excerpt">
+                    <p><p>We are happy to announce that we have just released an update for <code>cordova-plugin-file</code>!</p>
+
+<ul>
+  <li><a href="https://www.npmjs.com/package/cordova-plugin-file">cordova-plugin-file@8.1.1</a></li>
+</ul>
+
+<p><strong>To upgrade:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cordova plugin remove cordova-plugin-file
+cordova plugin add cordova-plugin-file@8.1.1
+</code></pre></div></div>
+
+<h2>Release Highlights</h2>
+
+<p>For Android, we corrected an issue that prevented <code>.toURL()</code> to be used on <code>content://</code> file entries. Now <code>.toURL()</code> will return a DOM-usable url on both <code>file://</code> and <code>content://</code> file entries.</p>
+
+<p>This will be important for upcoming releases planned for the Camera plugin.</p>
+
+<p>Note that the <code>AndroidInsecureFileModeEnabled</code> preference must be off. If <code>AndroidInsecureFileModeEnabled</code> preference is turned on, then <code>.toURL()</code> will return the underlying URL and modern Android devices will reject <code>content://</code> file paths. If your project is still using <code>AndroidInsecureFileModeEnabled</code> it is time to strongly consider migrating to schemes by turning the <code>AndroidInsecureFileModeEnabled</code> preference off.</p>
+
+<p>By default, the <code>AndroidInsecureFileModeEnabled</code> preference is disabled. If your project does not explicitly enable it, then no action is required.</p>
+
+<p>For iOS, there are no changes.</p>
+
+<p><em>Edit (2024-10-28)</em>: This patch introduces a regression on Android platforms when resolving <code>.toURL()</code> on some <code>file://</code> URIs. Please use upgrade to <code>cordova-plugin-file@8.1.2</code> instead.</p>
+
+<p>Please report any issues you find by following the this <a href="https://github.com/apache/cordova#filing-a-bug">How to File a Bug</a> guide!</p>
+
+</p>
+                    <div><a href="/announcements/2024/10/23/cordova-plugin-file-8.1.1.html">More...</a></div>
+                </section>
+            </li>
+            
+            <li>
+                <header>
+                    <div class="adorner" blogTime="Mon, 21 Oct 2024 00:00:00 +0000"></div>
+                    <h2 class="title">
+                        <a href="/announcements/2024/10/21/cordova-ios-8.1.1-beta.1.html">Cordova iOS 8.0.0 Beta1 is Now Available!</a>
+                    </h2>
+                    <div class="details">
+                        <span class="date">21 Oct 2024</span>
+                        - by
+                        <span class="author">
+                            
+                                <a href="https://dpogue.ca">Darryl Pogue</a>
+                            
+                        </span>
+                        <a class="comment" href="/announcements/2024/10/21/cordova-ios-8.1.1-beta.1.html#disqus_thread"></a>
+                    </div>
+                </header>
+                <section class="post-excerpt">
+                    <p><p>We are happy to announce that we have just released a beta for the next Cordova iOS version. This is Cordova iOS 8.0.0-beta.1!</p>
+
+<p>This is a developer preview of Cordova&#39;s supported platforms for building iOS applications. The intention of this beta release is for plugin authors and app developers to test their plugins and projects and provide feedback and bug reports before the final release of Cordova iOS 8.0.0. This version includes several breaking API changes and project structure changes, which is why we are providing this beta release for testing purposes.</p>
+
+<p>This beta is <strong>not intended to be used for production App Store submissions</strong>.</p>
+
+<ul>
+  <li><a href="https://www.npmjs.com/package/cordova-ios/v/8.0.0-beta.1">cordova-ios@8.0.0-beta.1</a> on npm</li>
+  <li><a href="https://archive.apache.org/dist/cordova/platforms/cordova-ios-8.0.0-beta.1.tgz">cordova-ios@8.0.0-beta.1.tgz</a> source code</li>
+</ul>
+
+<p>For plugin authors, we&#39;ve written a guide about <a href="https://apache.github.io/cordova-ios/documentation/cordova/upgrading-8?language=objc">Upgrading Plugins to Cordova iOS 8.x</a>.</p>
+
+<p><strong>To test an upgrade in your projects:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cordova platform remove ios
+cordova platform add ios@8.0.0-beta.1
+</code></pre></div></div>
+
+<p><strong>To install for testing:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cordova platform add ios@8.0.0-beta.1
+</code></pre></div></div>
+
+<h2>Release Highlights</h2>
+
+<ul>
+  <li><strong>The minimum supported versions have been increased.</strong>
+    <ul>
+      <li>The minimum supported <strong>iOS</strong> version is now 13.</li>
+      <li>The minimum supported <strong>Xcode</strong> version is now 15.</li>
+      <li>The minimum supported <strong>NodeJS</strong> version is now 18.</li>
+    </ul>
+  </li>
+  <li><strong>The platform project has been modernized with some significant changes.</strong>
+    <ul>
+      <li>The Xcode project, and build target are now always named <code>App</code>.<br />
+This resolves numerous issues around CocoaPods, multi-target projects, and Info.plist additions, but potentially breaks some hooks that assume the project name matches what&#39;s defined in config.xml.</li>
+      <li>The platform project now uses Swift classes and a storyboard file.</li>
+      <li>The platform project now supports building for macOS using Catalyst.</li>
+    </ul>
+  </li>
+  <li><strong>App Icon handling has been simplified.</strong>
+    <ul>
+      <li>Projects can now provide a single 1024px × 1024px icon in config.xml.</li>
+      <li>Projects building with Xcode 16 can now provide monochrome and dark mode icon variants.</li>
+      <li>See <a href="https://github.com/apache/cordova-ios/pull/1465">GH-1465</a> for details.</li>
+    </ul>
+  </li>
+  <li><strong>Fixes for numerous bug reports and pain points.</strong>
+    <ul>
+      <li>Range requests are now supported for large media files when using a custom protocol.</li>
+      <li>Opening system alert boxes from JavaScript code should no longer freeze the application.</li>
+      <li>Improved error messaging when no iOS simulators are installed.</li>
+    </ul>
+  </li>
+  <li><strong>Fixes for apps that use Cordova as a framework.</strong>
+    <ul>
+      <li>Several memory leaks have been fixed when disposing of a Cordova view controller.</li>
+      <li>Several API improvements for specifying background colours and splash screen behaviour.</li>
+      <li>New <a href="https://apache.github.io/cordova-ios/">API documentation</a> is published for the CordovaLib classes.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>The full changelog is available to read <a href="https://github.com/apache/cordova-ios/blob/8.0.0-beta.1/RELEASENOTES.md#800-beta1-oct-17-2024">here</a>. Please report any issues you find on our <a href="https://github.com/apache/cordova-iOS/issues">Cordova-iOS</a> GitHub issue tracker!</p>
+</p>
+                    <div><a href="/announcements/2024/10/21/cordova-ios-8.1.1-beta.1.html">More...</a></div>
+                </section>
+            </li>
+            
+            <li>
+                <header>
+                    <div class="adorner" blogTime="Wed, 24 Jul 2024 00:00:00 +0000"></div>
+                    <h2 class="title">
+                        <a href="/announcements/2024/07/24/cordova-ios-7.1.1.html">Cordova iOS 7.1.1 Released!</a>
+                    </h2>
+                    <div class="details">
+                        <span class="date">24 Jul 2024</span>
+                        - by
+                        <span class="author">
+                            
+                                Bryan Ellis
+                            
+                        </span>
+                        <a class="comment" href="/announcements/2024/07/24/cordova-ios-7.1.1.html#disqus_thread"></a>
+                    </div>
+                </header>
+                <section class="post-excerpt">
+                    <p><p>We are happy to announce that we have just released <code>Cordova iOS 7.1.1</code>! This is one of Cordova&#39;s supported platforms for building iOS applications.</p>
+
+<ul>
+  <li><a href="https://www.npmjs.com/package/cordova-ios">cordova-ios@7.1.1</a></li>
+</ul>
+
+<p><strong>To upgrade:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cordova platform remove ios
+cordova platform add ios@7.1.1
+</code></pre></div></div>
+
+<p><strong>To install:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cordova platform add ios@7.1.1
+</code></pre></div></div>
+
+<h2>Release Highlights</h2>
+
+<h3>Fixes</h3>
+
+<ul>
+  <li>
+    <p><strong>Properly uninstall plugins with asset tags</strong></p>
+
+    <p>Fixed issues where plugins were not uninstalling properly if the plugin had <code>&lt;asset&gt;</code> tags defined in <code>plugin.xml</code>.</p>
+  </li>
+  <li>
+    <p><strong>Version warnings during plugin add</strong></p>
+
+    <p>Fixed an issue that displayed version check failure warnings when installing plugins.</p>
+  </li>
+  <li>
+    <p><strong>Moved <code>CODE_SIGN_ENTITLEMENTS</code> to the target settings of the application target within the Xcode project.</strong></p>
+  </li>
+</ul>
+
+<p>Please report any issues you find on our <a href="https://github.com/apache/cordova-iOS/issues">Cordova-iOS</a> GitHub issue tracker!</p>
+
+</p>
+                    <div><a href="/announcements/2024/07/24/cordova-ios-7.1.1.html">More...</a></div>
+                </section>
+            </li>
+            
+            <li>
+                <header>
+                    <div class="adorner" blogTime="Thu, 23 May 2024 00:00:00 +0000"></div>
+                    <h2 class="title">
+                        <a href="/announcements/2024/05/23/cordova-android-13.0.0.html">Cordova Android 13.0.0 Released!</a>
+                    </h2>
+                    <div class="details">
+                        <span class="date">23 May 2024</span>
+                        - by
+                        <span class="author">
+                            
+                                Bryan Ellis
+                            
+                        </span>
+                        <a class="comment" href="/announcements/2024/05/23/cordova-android-13.0.0.html#disqus_thread"></a>
+                    </div>
+                </header>
+                <section class="post-excerpt">
+                    <p><p>We are happy to announce that we have just released <code>Cordova Android 13.0.0</code>! This is one of Cordova&#39;s supported platforms for building Android applications.</p>
+
+<ul>
+  <li><a href="https://www.npmjs.com/package/cordova-android">cordova-android@13.0.0</a></li>
+</ul>
+
+<p><strong>To upgrade:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cordova platform remove android
+cordova platform add android@13.0.0
+</code></pre></div></div>
+
+<p><strong>To install:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cordova platform add android@13.0.0
+</code></pre></div></div>
+
+<h2>Release Highlights</h2>
+
+<h3>BREAKING CHANGES</h3>
+
+<ul>
+  <li>
+    <p><strong>Increased Target SDK</strong></p>
+
+    <p>This release has increased the target SDK to 34 (Android 14).</p>
+  </li>
+  <li>
+    <p><strong>Increased Android Studio Requirement</strong></p>
+
+    <p>Android Studio Jellyfish is required if building and running from Android Studio.</p>
+  </li>
+  <li>
+    <p><strong>Required Build Tools</strong></p>
+
+    <p>To use <code>cordova-android@13</code>, SDK Platform <code>34</code> and SDK Build Tools <code>34.0.0</code> must be installed. Older build tools version can be uninstalled if older versions of cordova-android is no longer used in your projects.</p>
+
+    <p>To install SDK Platform 34:</p>
+
+    <ol>
+      <li>Open Android Studio&#39;s <strong>SDK Manager</strong>:</li>
+      <li>Click on <code>SDK Platforms</code> tab</li>
+      <li>Check <code>Android 14.0 ("UpsideDownCake")</code> which has the <code>API Level</code> of <code>34</code></li>
+      <li>Click <code>Apply</code></li>
+    </ol>
+
+    <p><img src="/static/img/blog/2024/cordova-android-13-platform-sdk-34.png" style="width: 100%;" alt="Android SDK Platform" /></p>
+
+    <p>To install SDK Build Tools 34.0.0:</p>
+
+    <ol>
+      <li>Open Android Studio&#39;s <strong>SDK Manager</strong>:</li>
+      <li>Click on <code>SDK Tools</code> tab</li>
+      <li>Check <code>Show Package Details</code></li>
+      <li>Expand <code>Android SDK Build-Tools</code></li>
+      <li>Check <code>34.0.0</code></li>
+      <li>Click <code>Apply</code></li>
+    </ol>
+
+    <p><img src="/static/img/blog/2024/cordova-android-13-sdk-build-tools-3400.png" style="width: 100%;" alt="Android SDK Build Tools" /></p>
+  </li>
+  <li>
+    <p><strong>Project Dependencies</strong></p>
+
+    <p>The following project dependencies were bumpped:</p>
+
+    <ul>
+      <li>Kotlin: <code>1.9.24</code></li>
+      <li>Gradle: <code>8.7</code></li>
+      <li>Android Gradle Plugin (AGP): <code>8.3.0</code></li>
+    </ul>
+
+    <p>If you or a plugin has made changes to any of the following configuration preferences, the build results might not match the expected outcomes with this release:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Preference</th>
+          <th>Default Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>android-minSdkVersion</code></td>
+          <td>24</td>
+        </tr>
+        <tr>
+          <td><code>android-maxSdkVersion</code></td>
+          <td><em>Not set</em></td>
+        </tr>
+        <tr>
+          <td><code>android-targetSdkVersion</code></td>
+          <td>34</td>
+        </tr>
+        <tr>
+          <td><code>android-compileSdkVersion</code></td>
+          <td><em>android-targetSdkVersion configured value</em></td>
+        </tr>
+        <tr>
+          <td><code>android-buildToolsVersion</code></td>
+          <td>34.0.0</td>
+        </tr>
+        <tr>
+          <td><code>GradleVersion</code></td>
+          <td>8.7</td>
+        </tr>
+        <tr>
+          <td><code>AndroidGradlePluginVersion</code></td>
+          <td>8.3.0</td>
+        </tr>
+        <tr>
+          <td><code>GradlePluginKotlinVersion</code></td>
+          <td>1.9.24</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Please take note of the versions that have been updated in this release. If you have manually modified any of these values, it is recommended to review and update the preference values accordingly.</p>
+  </li>
+  <li>
+    <p><strong>Increased Java Requirement</strong></p>
+
+    <p>The Java Development Kit (JDK) requirement has been increased to version 17 due to the new versions of dependencies and tooling previously described.</p>
+  </li>
+  <li>
+    <p><strong>Removed <code>kotlin-android-extensions</code></strong></p>
+
+    <p><code>kotlin-android-extensions</code> will no longer be checked out when kotlin is greater than or equal to version <code>1.8.0</code>.</p>
+  </li>
+</ul>
+
+<h3>Feature</h3>
+
+<ul>
+  <li>
+    <p><strong>Added <code>SplashScreenBackgroundColor</code> Preference Support</strong></p>
+
+    <p>Added support for a general preference to be consistent across platforms for setting the splash screen background color.</p>
+
+    <p>The following order of priority is applied when it comes to the Cordova Android platform:</p>
+
+    <ul>
+      <li><code>AndroidWindowSplashScreenBackground</code> preference</li>
+      <li><code>SplashScreenBackgroundColor</code> preference</li>
+      <li><code>BackgroundColor</code> preference</li>
+      <li><code>#ffffff</code> hardcoded</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Add Camera Intent Support for File Input Capture</strong></p>
+
+    <p>Allows user to access and use the camera when the HTML file <code>input</code> tag contains the <code>capture</code> flag.</p>
+
+    <p>Example:</p>
+
+    <div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"file"</span> <span class="na">capture</span> <span class="nt">/&gt;</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>Added <code>ResolveServiceWorkerRequests</code> Preference Support</strong></p>
+
+    <p>Added a preference that makes it possible for service worker requests to go through the asset loader. By default this is enabled.</p>
+
+    <p>This can be disabled with the following preference.</p>
+
+    <div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="nt">&lt;preference</span> <span class="na">name=</span><span class="s">"ResolveServiceWorkerRequests"</span> <span class="na">value=</span><span class="s">"false"</span> <span class="nt">/&gt;</span>
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<p>Please report any issues you find on our <a href="https://github.com/apache/cordova-android/issues">Cordova-android</a> GitHub issue tracker!</p>
+
+</p>
+                    <div><a href="/announcements/2024/05/23/cordova-android-13.0.0.html">More...</a></div>
+                </section>
+            </li>
+            
+            <li>
+                <header>
+                    <div class="adorner" blogTime="Wed, 03 Apr 2024 00:00:00 +0000"></div>
+                    <h2 class="title">
+                        <a href="/announcements/2024/04/03/cordova-ios-7.1.0.html">Cordova iOS 7.1.0 Released!</a>
+                    </h2>
+                    <div class="details">
+                        <span class="date">03 Apr 2024</span>
+                        - by
+                        <span class="author">
+                            
+                                Bryan Ellis
+                            
+                        </span>
+                        <a class="comment" href="/announcements/2024/04/03/cordova-ios-7.1.0.html#disqus_thread"></a>
+                    </div>
+                </header>
+                <section class="post-excerpt">
+                    <p><p>We are happy to announce that we have just released <code>Cordova iOS 7.1.0</code>! This is one of Cordova&#39;s supported platforms for building iOS applications.</p>
+
+<ul>
+  <li><a href="https://www.npmjs.com/package/cordova-ios">cordova-ios@7.1.0</a></li>
+</ul>
+
+<p><strong>To upgrade:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cordova platform remove ios
+cordova platform add ios@7.1.0
+</code></pre></div></div>
+
+<p><strong>To install:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cordova platform add ios@7.1.0
+</code></pre></div></div>
+
+<h2>Release Highlights</h2>
+
+<h3>Features</h3>
+
+<ul>
+  <li>
+    <p><strong><code>SplashScreenBackgroundColor</code> preference support</strong></p>
+
+    <p>This preference allows you to set the splashscreen&#39;s background colour. If no <code>SplashScreenBackgroundColor</code> is provided, it will fall back to the <code>BackgroundColor</code>, which is the current behavior, and then fallback to the system background colour when nothing is defined.</p>
+  </li>
+  <li>
+    <p><strong><code>privacy-manifest</code> Support</strong></p>
+
+    <p>This release supplies the templated blank privacy manifest file, <code>PrivacyInfo.xcprivacy</code> which can be configured from <code>config.xml</code>.</p>
+
+    <p>This release focuses specifically on providing support for app developers to set this configuration, while a later release will introduce support for plugin developers.</p>
+
+    <p>It is recommended that plugin developers help app developers by providing in their plugin documentation the necessary configuration setup.</p>
+
+    <p>Below is an example config.xml entry that app developers can define to configure the privacy manifest file.</p>
+
+    <div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="nt">&lt;platform</span> <span class="na">name=</span><span class="s">"ios"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;privacy-manifest&gt;</span>
+          <span class="nt">&lt;key&gt;</span>NSPrivacyTracking<span class="nt">&lt;/key&gt;</span>
+          <span class="nt">&lt;true/&gt;</span>
+          <span class="nt">&lt;key&gt;</span>NSPrivacyCollectedDataTypes<span class="nt">&lt;/key&gt;</span>
+          <span class="nt">&lt;array/&gt;</span>
+          <span class="nt">&lt;key&gt;</span>NSPrivacyAccessedAPITypes<span class="nt">&lt;/key&gt;</span>
+          <span class="nt">&lt;array/&gt;</span>
+          <span class="nt">&lt;key&gt;</span>NSPrivacyTrackingDomains<span class="nt">&lt;/key&gt;</span>
+          <span class="nt">&lt;array/&gt;</span>
+      <span class="nt">&lt;/privacy-manifest&gt;</span>
+  <span class="nt">&lt;/platform&gt;</span>
+</code></pre></div>    </div>
+
+    <p>The contents and values of <code>NSPrivacyTracking</code>, <code>NSPrivacyCollectedDataTypes</code>, <code>NSPrivacyAccessedAPITypes</code>, and <code>NSPrivacyTrackingDomains</code> will depend on the specific native APIs being utilized.</p>
+
+    <p>It is recommended to read the Apple Developer documentation to better understand these parameters.</p>
+
+    <ul>
+      <li><a href="https://developer.apple.com/documentation/bundleresources/privacy_manifest_files">Privacy manifest files</a></li>
+      <li><a href="https://developer.apple.com/documentation/bundleresources/privacy_manifest_files/describing_use_of_required_reason_api">Describing use of required reason API</a></li>
+      <li><a href="https://developer.apple.com/documentation/bundleresources/privacy_manifest_files/describing_data_use_in_privacy_manifests">Describing data use in privacy manifests</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h3>Fixes</h3>
+
+<ul>
+  <li>
+    <p><strong>Use <code>PROVISIONING_PROFILE_SPECIFIER</code> for manual codesigning</strong></p>
+
+    <p>Allows you to use either the UUID or name value from the provisioning profile for the build flag <code>provisioningProfile</code> in either the <code>build.json</code> configuration file or via the CLI command.</p>
+  </li>
+  <li>
+    <p><strong>WASM MIME type error</strong></p>
+
+    <p>Enables WebAssembly support in Cordova WebView.</p>
+  </li>
+</ul>
+
+<p>Please report any issues you find on our <a href="https://github.com/apache/cordova-iOS/issues">Cordova-iOS</a> GitHub issue tracker!</p>
+
+</p>
+                    <div><a href="/announcements/2024/04/03/cordova-ios-7.1.0.html">More...</a></div>
+                </section>
+            </li>
+            
+            <li>
+                <header>
                     <div class="adorner" blogTime="Mon, 11 Mar 2024 00:00:00 +0000"></div>
                     <h2 class="title">
                         <a href="/announcements/2024/03/11/cordova-electron-release-4.0.0.html">Cordova Electron 4.0.0 Released!</a>
@@ -13785,7 +14568,7 @@ just around the corner (July 19, 2013), and we are really excited about it!</p>
 <script>
     window.onload = function(){
         setTimeout(function(){
-            var lastPostTime = new Date("Mon, 11 Mar 2024 00:00:00 +0000").getTime();
+            var lastPostTime = new Date("Sat, 02 Nov 2024 00:00:00 +0000").getTime();
           setCookie("visitTime", lastPostTime, 365);
         }, 2000);
     };

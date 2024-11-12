@@ -216,6 +216,21 @@
 
     <li>
         
+            <a class="" href="/docs/en/dev/guide/overview/project-structure.html">
+                Project Structure
+            </a>
+            
+        
+
+        
+        
+
+        
+    </li>
+    
+
+    <li>
+        
             <a class="" href="/docs/en/dev/reference/cordova-cli/index.html">
                 CLI Commands
             </a>
@@ -1043,6 +1058,15 @@
 
 
 
+
+
+
+
+<li>
+    <a class="" href="/docs/en/dev/guide/overview/project-structure.html">
+        Project Structure
+    </a>
+</li>
 
 
 
@@ -2345,20 +2369,15 @@
 
 <p><a href="https://github.com/apache/cordova-plugin-file/actions/workflows/android.yml"><img src="https://github.com/apache/cordova-plugin-file/actions/workflows/android.yml/badge.svg" alt="Android Testsuite" /></a> <a href="https://github.com/apache/cordova-plugin-file/actions/workflows/chrome.yml"><img src="https://github.com/apache/cordova-plugin-file/actions/workflows/chrome.yml/badge.svg" alt="Chrome Testsuite" /></a> <a href="https://github.com/apache/cordova-plugin-file/actions/workflows/ios.yml"><img src="https://github.com/apache/cordova-plugin-file/actions/workflows/ios.yml/badge.svg" alt="iOS Testsuite" /></a> <a href="https://github.com/apache/cordova-plugin-file/actions/workflows/lint.yml"><img src="https://github.com/apache/cordova-plugin-file/actions/workflows/lint.yml/badge.svg" alt="Lint Test" /></a></p>
 
-<p>This plugin implements a File API allowing read/write access to files residing on the device.</p>
+<p>This plugin implements a File API allowing read/write access to files residing on the device, based on the following W3C specifications:</p>
 
-<p>This plugin is based on several specs, including :
-The HTML5 File API
-<a href="http://www.w3.org/TR/FileAPI/">http://www.w3.org/TR/FileAPI/</a></p>
+<ul>
+  <li><a href="http://www.w3.org/TR/FileAPI">HTML5 File API</a></li>
+  <li><a href="http://www.w3.org/TR/2012/WD-file-system-api-20120417">File API: Directories and System</a><sup>1</sup></li>
+  <li><a href="https://www.w3.org/TR/2012/WD-file-writer-api-20120417/">File API: Writer</a><sup>1</sup></li>
+</ul>
 
-<p>The Directories and System extensions
-Latest:
-<a href="http://www.w3.org/TR/2012/WD-file-system-api-20120417/">http://www.w3.org/TR/2012/WD-file-system-api-20120417/</a>
-Although most of the plugin code was written when an earlier spec was current:
-<a href="http://www.w3.org/TR/2011/WD-file-system-api-20110419/">http://www.w3.org/TR/2011/WD-file-system-api-20110419/</a></p>
-
-<p>It also implements the FileWriter spec :
-<a href="http://dev.w3.org/2009/dap/file-system/file-writer.html">http://dev.w3.org/2009/dap/file-system/file-writer.html</a></p>
+<p><sup>1</sup> These specifications are discontinued and the file plugin may not have the entire specification implemented.</p>
 
 <blockquote>
   <p><em>Note</em> While the W3C FileSystem spec is deprecated for web browsers, the FileSystem APIs are supported in Cordova applications with this plugin for the platforms listed in the <em>Supported Platforms</em> list, with the exception of the Browser platform.</p>
@@ -3077,10 +3096,12 @@ non-empty directories - directories being removed are cleaned along with content
 
 <h2>Upgrading Notes</h2>
 
+<h3>v1.0.0</h3>
+
 <p>In v1.0.0 of this plugin, the <code>FileEntry</code> and <code>DirectoryEntry</code> structures have changed,
 to be more in line with the published specification.</p>
 
-<p>Previous (pre-1.0.0) versions of the plugin stored the device-absolute-file-location
+<p>Previous versions of the plugin stored the device-absolute-file-location
 in the <code>fullPath</code> property of <code>Entry</code> objects. These paths would typically look like</p>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/var/mobile/Applications/&lt;application UUID&gt;/Documents/path/to/file  (iOS)
@@ -3089,9 +3110,7 @@ in the <code>fullPath</code> property of <code>Entry</code> objects. These paths
 
 <p>These paths were also returned by the <code>toURL()</code> method of the <code>Entry</code> objects.</p>
 
-<p>With v1.0.0, the <code>fullPath</code> attribute is the path to the file, <em>relative to the root of
-the HTML filesystem</em>. So, the above paths would now both be represented by a <code>FileEntry</code>
-object with a <code>fullPath</code> of</p>
+<p>Starting with v1.0.0, the <code>fullPath</code> attribute is the path to the file, <em>relative to the root of the HTML filesystem</em>. So, the above paths would now both be represented by a <code>FileEntry</code> object with a <code>fullPath</code> of</p>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/path/to/file
 </code></pre></div></div>
@@ -3101,24 +3120,25 @@ paths through the <code>fullPath</code> property of <code>Entry</code> objects, 
 to use <code>entry.toURL()</code> instead.</p>
 
 <p>For backwards compatibility, the <code>resolveLocalFileSystemURL()</code> method will accept a
-device-absolute-path, and will return an <code>Entry</code> object corresponding to it, as long as that
-file exists within either the <code>TEMPORARY</code> or <code>PERSISTENT</code> filesystems.</p>
+device-absolute-path, and will return an <code>Entry</code> object corresponding to it, as long as that file exists within either the <code>TEMPORARY</code> or <code>PERSISTENT</code> filesystems.</p>
 
 <p>This has particularly been an issue with the File-Transfer plugin, which previously used
 device-absolute-paths (and can still accept them). It has been updated to work correctly
-with FileSystem URLs, so replacing <code>entry.fullPath</code> with <code>entry.toURL()</code> should resolve any
-issues getting that plugin to work with files on the device.</p>
+with FileSystem URLs, so replacing <code>entry.fullPath</code> with <code>entry.toURL()</code> should resolve any issues getting that plugin to work with files on the device.</p>
 
-<p>In v1.1.0 the return value of <code>toURL()</code> was changed (see <a href="https://issues.apache.org/jira/browse/CB-6394">CB-6394</a>)
-to return an absolute &#39;file://&#39; URL. wherever possible. To ensure a &#39;cdvfile:&#39;-URL you can use <code>toInternalURL()</code> now.
-This method will now return filesystem URLs of the form</p>
+<h3>v1.1.0</h3>
+
+<p>Starting with v1.1.0, the return value of <code>toURL()</code> was changed (see <a href="https://issues.apache.org/jira/browse/CB-6394">CB-6394</a>)
+to return an absolute &#39;file://&#39; URL. wherever possible. To ensure a &#39;cdvfile:&#39;-URL you can use <code>toInternalURL()</code> now. This method will now return filesystem URLs of the form</p>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cdvfile://localhost/persistent/path/to/file
 </code></pre></div></div>
 
 <p>which can be used to identify the file uniquely.</p>
 
-<p>In v7.0.0 the return value of <code>toURL()</code> for Android was updated to return the absolute <code>file://</code> URL when app content is served from the <code>file://</code> scheme.</p>
+<h3>v7.0.0</h3>
+
+<p>Starting in v7.0.0 the return value of <code>toURL()</code> for Android was updated to return the absolute <code>file://</code> URL when app content is served from the <code>file://</code> scheme.</p>
 
 <p>If app content is served from the <code>http(s)://</code> scheme, a <code>cdvfile</code> formatted URL will be returned instead. The <code>cdvfile</code> formatted URL is created from the internal method <code>toInternalURL()</code>.</p>
 
@@ -3130,6 +3150,13 @@ This method will now return filesystem URLs of the form</p>
 <p><a href="//sketchviz.com/@erisu/7b05499842275be93a0581e8e3576798"><img src="https://sketchviz.com/@erisu/7b05499842275be93a0581e8e3576798/6dc71d8302cafd05b443d874a592d10fa415b8e3.sketchy.png" alt="toURL flow" /></a></p>
 
 <p>It is recommended to always use the <code>toURL()</code> to ensure that the correct URL is returned.</p>
+
+<h3>v8.0.0</h3>
+
+<p>Starting in v8.0.0 the return value of <code>.toURL()</code> was changed for iOS to bring
+the behaviour more closely to Android. If the webview is hosted on <code>file://</code> scheme,
+then <code>.toURL</code> return will not change and will continue to return a <code>file://</code> URI.
+Otherwise it will return the app&#39;s scheme path.</p>
 
 <h2>cdvfile protocol</h2>
 
@@ -3361,7 +3388,7 @@ Android also supports a special filesystem named &quot;documents&quot;, which re
     <span class="c1">// Create a FileWriter object for our FileEntry (log.txt).</span>
     <span class="nx">fileEntry</span><span class="p">.</span><span class="nx">createWriter</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">fileWriter</span><span class="p">)</span> <span class="p">{</span>
 
-        <span class="nx">fileWriter</span><span class="p">.</span><span class="nx">onwriteend</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nx">fileWriter</span><span class="p">.</span><span class="nx">onwrite</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
             <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">Successful file write...</span><span class="dl">"</span><span class="p">);</span>
             <span class="nx">readFile</span><span class="p">(</span><span class="nx">fileEntry</span><span class="p">);</span>
         <span class="p">};</span>
@@ -3422,13 +3449,13 @@ Android also supports a special filesystem named &quot;documents&quot;, which re
     <span class="c1">// Create a FileWriter object for our FileEntry (log.txt).</span>
     <span class="nx">fileEntry</span><span class="p">.</span><span class="nx">createWriter</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">fileWriter</span><span class="p">)</span> <span class="p">{</span>
 
-        <span class="nx">fileWriter</span><span class="p">.</span><span class="nx">onwriteend</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">Successful file read...</span><span class="dl">"</span><span class="p">);</span>
+        <span class="nx">fileWriter</span><span class="p">.</span><span class="nx">onwrite</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">Successful file write...</span><span class="dl">"</span><span class="p">);</span>
             <span class="nx">readFile</span><span class="p">(</span><span class="nx">fileEntry</span><span class="p">);</span>
         <span class="p">};</span>
 
         <span class="nx">fileWriter</span><span class="p">.</span><span class="nx">onerror</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
-            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">Failed file read: </span><span class="dl">"</span> <span class="o">+</span> <span class="nx">e</span><span class="p">.</span><span class="nx">toString</span><span class="p">());</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">Failed file write: </span><span class="dl">"</span> <span class="o">+</span> <span class="nx">e</span><span class="p">.</span><span class="nx">toString</span><span class="p">());</span>
         <span class="p">};</span>
 
         <span class="c1">// If we are appending data to file, go to the end of the file.</span>
@@ -3500,7 +3527,7 @@ Android also supports a special filesystem named &quot;documents&quot;, which re
     <span class="c1">// Create a FileWriter object for our FileEntry (log.txt).</span>
     <span class="nx">fileEntry</span><span class="p">.</span><span class="nx">createWriter</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">fileWriter</span><span class="p">)</span> <span class="p">{</span>
 
-        <span class="nx">fileWriter</span><span class="p">.</span><span class="nx">onwriteend</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nx">fileWriter</span><span class="p">.</span><span class="nx">onwrite</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
             <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">Successful file write...</span><span class="dl">"</span><span class="p">);</span>
             <span class="k">if</span> <span class="p">(</span><span class="nx">dataObj</span><span class="p">.</span><span class="nx">type</span> <span class="o">==</span> <span class="dl">"</span><span class="s2">image/png</span><span class="dl">"</span><span class="p">)</span> <span class="p">{</span>
                 <span class="nx">readBinaryFile</span><span class="p">(</span><span class="nx">fileEntry</span><span class="p">);</span>
@@ -3585,6 +3612,20 @@ Android also supports a special filesystem named &quot;documents&quot;, which re
 </code></pre></div></div>
 
 <p>When creating subfolders, you need to create each folder separately as shown in the preceding code.</p>
+
+<hr />
+
+<h2>iOS Privacy Manifest</h2>
+
+<p>As of May 1, 2024, Apple requires a privacy manifest file to be created for apps and third-party SDKs. The purpose of the privacy manifest file is to explain the data being collected and the reasons for the required APIs it uses. Starting with <code>cordova-ios@7.1.0</code>, APIs are available for configuring the privacy manifest file from <code>config.xml</code>.</p>
+
+<p>This plugin comes pre-bundled with a <code>PrivacyInfo.xcprivacy</code> file that contains the list of APIs it uses and the reasons for using them.</p>
+
+<p>However, as an app developer, it will be your responsibility to identify additional information explaining what your app does with that data.</p>
+
+<p>In this case, you will need to review the &quot;<a href="https://developer.apple.com/documentation/bundleresources/privacy_manifest_files/describing_data_use_in_privacy_manifests">Describing data use in privacy manifests</a>&quot; to understand the list of known <code>NSPrivacyCollectedDataTypes</code> and <code>NSPrivacyCollectedDataTypePurposes</code>.</p>
+
+<p>Also, ensure all four keys—<code>NSPrivacyTracking</code>, <code>NSPrivacyTrackingDomains</code>, <code>NSPrivacyAccessedAPITypes</code>, and <code>NSPrivacyCollectedDataTypes</code>—are defined, even if you are not making an addition to the other items. Apple requires all to be defined.</p>
 
 
             </div>
